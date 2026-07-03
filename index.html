@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Вызовы стройконтроля v2 — Никита Паршин</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23fbbf24'/%3E%3Cstop offset='1' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Crect x='6' y='15' width='5.5' height='11' rx='1.4' fill='%231a1000'/%3E%3Crect x='13.5' y='10' width='5.5' height='16' rx='1.4' fill='%231a1000'/%3E%3Crect x='21' y='14' width='5.5' height='12' rx='1.4' fill='%231a1000' opacity='.55'/%3E%3Cpath d='M21 5.5l2.6 2.6 4.4-4.5' stroke='%231a1000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#07090f; --bg2:#0b0f1a; --card:rgba(17,24,39,.72); --card-solid:#111827;
+  --border:rgba(255,255,255,.07); --border-hi:rgba(251,191,36,.35);
+  --text:#e7eaf2; --muted:#8b93a7; --dim:#5b6273;
+  --amber:#fbbf24; --orange:#f97316; --grad:linear-gradient(120deg,#fbbf24,#f97316);
+  --blue:#60a5fa; --green:#34d399; --violet:#a78bfa; --red:#f87171; --emerald:#4ade80;
+  --r:16px; --r-sm:10px;
+}
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh;
+  background-image:
+    radial-gradient(900px 500px at 85% -10%, rgba(249,115,22,.09), transparent 60%),
+    radial-gradient(700px 500px at -10% 20%, rgba(96,165,250,.07), transparent 60%),
+    radial-gradient(600px 600px at 50% 120%, rgba(167,139,250,.05), transparent 60%);
+  background-attachment:fixed;
+}
+::selection { background:rgba(251,191,36,.3); }
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-thumb { background:#1f2937; border-radius:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+
+/* ── HEADER ── */
+.header {
+  position:sticky; top:0; z-index:100; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  background:rgba(7,9,15,.82); border-bottom:1px solid var(--border);
+}
+.header-inner { max-width:1400px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.brand { display:flex; align-items:center; gap:14px; min-width:0; }
+.brand-icon {
+  width:46px; height:46px; border-radius:13px; background:var(--grad); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:23px;
+  box-shadow:0 4px 20px rgba(249,115,22,.35); animation:iconFloat 5s ease-in-out infinite;
+}
+@keyframes iconFloat { 0%,100%{transform:translateY(0) rotate(0);} 50%{transform:translateY(-3px) rotate(-3deg);} }
+.brand-title {
+  font-family:'Unbounded',sans-serif; font-size:17px; font-weight:700; letter-spacing:.5px;
+  background:linear-gradient(120deg,#fff 30%,#fbbf24 55%,#f97316 75%,#fff 95%);
+  background-size:250% auto; -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:shine 7s linear infinite; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+@keyframes shine { to { background-position:250% center; } }
+.brand-sub { font-size:11px; color:var(--muted); margin-top:2px; letter-spacing:.3px; }
+.brand-sub b { color:var(--amber); font-weight:600; }
+.header-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.live-pill { display:flex; align-items:center; gap:7px; padding:6px 13px; border:1px solid var(--border); border-radius:20px; font-size:11px; color:var(--muted); background:rgba(255,255,255,.03); }
+.live-dot { width:8px; height:8px; border-radius:50%; background:var(--emerald); box-shadow:0 0 0 0 rgba(74,222,128,.6); animation:ping 2s infinite; }
+@keyframes ping { 0%{box-shadow:0 0 0 0 rgba(74,222,128,.55);} 70%{box-shadow:0 0 0 9px rgba(74,222,128,0);} 100%{box-shadow:0 0 0 0 rgba(74,222,128,0);} }
+.btn {
+  padding:10px 20px; border-radius:12px; border:none; cursor:pointer; font-size:14px; font-weight:600;
+  font-family:inherit; display:inline-flex; align-items:center; gap:7px; transition:all .2s; color:var(--text);
+}
+.btn-grad { background:var(--grad); color:#1a1000; box-shadow:0 4px 18px rgba(249,115,22,.3); }
+.btn-grad:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(249,115,22,.45); }
+.btn-ghost { background:rgba(255,255,255,.05); border:1px solid var(--border); }
+.btn-ghost:hover { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.15); }
+.btn-sm { padding:7px 14px; font-size:13px; border-radius:10px; }
+.icon-btn { width:40px; height:40px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,.04); cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center; transition:all .2s; color:var(--text); }
+.icon-btn:hover { background:rgba(255,255,255,.1); transform:translateY(-1px); }
+
+/* ── TABS ── */
+.view-tabs { max-width:1400px; margin:0 auto; padding:0 24px; display:flex; gap:6px; }
+.view-tab {
+  padding:11px 22px; font-size:13.5px; font-weight:600; color:var(--muted); background:none; border:none;
+  border-bottom:2.5px solid transparent; cursor:pointer; font-family:inherit; transition:all .2s; display:flex; gap:7px; align-items:center;
+}
+.view-tab:hover { color:var(--text); }
+.view-tab.active { color:var(--amber); border-bottom-color:var(--amber); }
+
+.main { max-width:1400px; margin:0 auto; padding:26px 24px 110px; }
+
+/* ── STATS BAR ── */
+.stats-bar { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
+.stat-card {
+  position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--r);
+  padding:18px; cursor:pointer; transition:all .25s; overflow:hidden;
+  animation:fadeUp .5s cubic-bezier(.2,.7,.3,1) backwards; animation-delay:calc(var(--i)*70ms);
+}
+.stat-card::before { content:''; position:absolute; inset:0; background:radial-gradient(220px 120px at 20% 0%, color-mix(in srgb, var(--sc) 14%, transparent), transparent 70%); pointer-events:none; }
+.stat-card:hover { transform:translateY(-4px); border-color:color-mix(in srgb, var(--sc) 45%, transparent); box-shadow:0 12px 34px rgba(0,0,0,.4); }
+.stat-card.active-filter { border-color:var(--sc); box-shadow:0 0 0 1px var(--sc), 0 10px 30px color-mix(in srgb, var(--sc) 22%, transparent); }
+.stat-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.stat-ico { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; background:color-mix(in srgb, var(--sc) 16%, transparent); }
+.stat-count { font-family:'Unbounded',sans-serif; font-size:32px; font-weight:700; color:var(--sc); line-height:1; }
+.stat-label { font-size:12px; color:var(--muted); font-weight:500; }
+@keyframes fadeUp { from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+
+/* ── NEXT ACTIONS ── */
+.next-panel { background:var(--card); border:1px solid var(--border-hi); border-radius:var(--r); padding:16px 18px; margin-bottom:22px; animation:fadeUp .5s .2s backwards; }
+.next-title { font-size:13px; font-weight:700; color:var(--amber); letter-spacing:.8px; text-transform:uppercase; display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.next-list { display:flex; flex-direction:column; gap:8px; }
+.next-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:var(--r-sm); font-size:13.5px; transition:all .2s; }
+.next-item:hover { border-color:var(--border-hi); background:rgba(251,191,36,.05); }
+.next-item .ni-icon { font-size:17px; flex-shrink:0; }
+.next-item .ni-text { flex:1; min-width:0; }
+.next-item .ni-text b { font-weight:600; }
+.next-item .ni-text .ni-loc { color:var(--muted); font-size:12px; }
+.next-item .ni-overdue { color:var(--red); font-size:11px; font-weight:700; }
+
+/* ── TOOLBAR / FILTERS ── */
+.toolbar { display:flex; gap:12px; margin-bottom:14px; align-items:center; }
+.search-wrap { flex:1; position:relative; }
+.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--dim); pointer-events:none; }
+.search-input {
+  width:100%; padding:11px 14px 11px 42px; border-radius:12px; border:1px solid var(--border);
+  font-size:14px; font-family:inherit; color:var(--text); background:rgba(255,255,255,.04); transition:all .2s;
+}
+.search-input:focus { outline:none; border-color:var(--border-hi); background:rgba(255,255,255,.06); box-shadow:0 0 0 3px rgba(251,191,36,.1); }
+.search-input::placeholder { color:var(--dim); }
+.last-updated { font-size:11px; color:var(--dim); white-space:nowrap; }
+.filter-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+.filter-tab {
+  padding:7px 15px; border-radius:20px; border:1px solid var(--border); background:rgba(255,255,255,.03);
+  color:var(--muted); font-size:12.5px; font-weight:500; cursor:pointer; font-family:inherit; transition:all .2s;
+  display:flex; align-items:center; gap:6px;
+}
+.filter-tab:hover { border-color:var(--border-hi); color:var(--text); }
+.filter-tab.active { background:var(--grad); color:#1a1000; border-color:transparent; font-weight:700; }
+.ftc { background:rgba(255,255,255,.12); padding:1px 8px; border-radius:10px; font-size:11px; font-weight:700; }
+.filter-tab.active .ftc { background:rgba(0,0,0,.18); }
+
+/* ── CARDS ── */
+.calls-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:16px; }
+.call-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden;
+  transition:all .25s; animation:fadeUp .45s cubic-bezier(.2,.7,.3,1) backwards; animation-delay:calc(var(--i)*50ms);
+  position:relative;
+}
+.call-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sc); }
+.call-card:hover { transform:translateY(-4px); border-color:color-mix(in srgb, var(--sc) 40%, transparent); box-shadow:0 14px 40px rgba(0,0,0,.45); }
+.call-card.overdue { border-color:rgba(248,113,113,.4); }
+.cc-header { padding:15px 18px 11px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.cc-title { font-size:15px; font-weight:700; line-height:1.35; }
+.cc-badge { padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700; background:color-mix(in srgb, var(--sc) 15%, transparent); color:var(--sc); white-space:nowrap; flex-shrink:0; }
+.cc-timeline { display:flex; align-items:center; gap:0; padding:2px 18px 12px; }
+.tl-dot { width:11px; height:11px; border-radius:50%; background:#1f2937; border:2px solid #2b3548; flex-shrink:0; transition:all .3s; position:relative; }
+.tl-dot.done { background:var(--emerald); border-color:var(--emerald); }
+.tl-dot.cur { background:var(--amber); border-color:var(--amber); box-shadow:0 0 10px rgba(251,191,36,.7); animation:pulse 1.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+.tl-line { height:2px; flex:1; background:#2b3548; }
+.tl-line.done { background:var(--emerald); }
+.tl-dot .tl-tip { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:#1f2937; font-size:10px; padding:3px 8px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s; z-index:5; }
+.tl-dot:hover .tl-tip { opacity:1; }
+.cc-body { padding:0 18px 13px; }
+.cc-row { display:flex; align-items:flex-start; gap:8px; margin-bottom:7px; font-size:13px; }
+.cc-row-ico { flex-shrink:0; font-size:13px; width:17px; text-align:center; opacity:.75; }
+.cc-row-val { color:var(--text); font-weight:500; }
+.cc-row-muted { color:var(--muted); }
+.wt-badges { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.wt-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(96,165,250,.1); color:#93c5fd; border:1px solid rgba(96,165,250,.22); border-radius:7px; padding:3px 9px; font-size:11.5px; font-weight:500; }
+.wt-badge.acc { background:rgba(74,222,128,.1); color:#86efac; border-color:rgba(74,222,128,.25); }
+.wt-badge .cut { color:var(--red); font-weight:700; margin-left:2px; }
+.cc-note { color:var(--muted); font-size:12px; font-style:italic; margin-top:4px; }
+.cc-footer { padding:11px 18px; background:rgba(255,255,255,.025); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.cc-date { font-size:11px; color:var(--dim); }
+.cc-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.btn-a { padding:6px 13px; border-radius:8px; border:none; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; transition:all .18s; }
+.btn-adv { background:var(--grad); color:#1a1000; }
+.btn-adv:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(249,115,22,.4); }
+.btn-det { background:rgba(255,255,255,.07); color:var(--muted); }
+.btn-det:hover { background:rgba(255,255,255,.13); color:var(--text); }
+.btn-rej { background:rgba(248,113,113,.12); color:var(--red); }
+.btn-rej:hover { background:rgba(248,113,113,.22); }
+.btn-res { background:rgba(74,222,128,.12); color:var(--emerald); }
+.btn-res:hover { background:rgba(74,222,128,.22); }
+
+.empty-state { text-align:center; padding:90px 20px; color:var(--muted); }
+.empty-icon { font-size:60px; margin-bottom:16px; opacity:.4; }
+.empty-title { font-size:19px; font-weight:700; color:var(--text); margin-bottom:8px; font-family:'Unbounded',sans-serif; }
+.loading { display:flex; align-items:center; justify-content:center; padding:90px; color:var(--muted); flex-direction:column; gap:18px; }
+.spinner { width:44px; height:44px; border:3px solid var(--border); border-top-color:var(--amber); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg);} }
+
+/* ── STATS VIEW ── */
+.stats-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+.month-nav { display:flex; align-items:center; gap:10px; }
+.month-label { font-family:'Unbounded',sans-serif; font-size:19px; font-weight:700; min-width:220px; text-align:center; }
+.stats-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px; }
+.sum-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r); padding:18px; animation:fadeUp .4s backwards; }
+.sum-val { font-family:'Unbounded',sans-serif; font-size:27px; font-weight:700; }
+.sum-val.g { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.sum-lbl { font-size:12px; color:var(--muted); margin-top:5px; }
+.cat-list { display:flex; flex-direction:column; gap:10px; }
+.cat-row { background:var(--card); border:1px solid var(--border); border-radius:var(--r-sm); padding:13px 16px; animation:fadeUp .4s backwards; animation-delay:calc(var(--i)*40ms); }
+.cat-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:10px; }
+.cat-name { font-size:13.5px; font-weight:600; }
+.cat-val { font-size:14px; font-weight:700; color:var(--amber); white-space:nowrap; }
+.cat-val span { color:var(--muted); font-weight:500; font-size:11.5px; }
+.cat-bar-bg { height:8px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
+.cat-bar { height:100%; background:var(--grad); border-radius:6px; width:0; transition:width .8s cubic-bezier(.2,.7,.3,1); box-shadow:0 0 12px rgba(249,115,22,.4); }
+.stats-actions { display:flex; gap:10px; }
+
+/* ── MODALS ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); z-index:200; display:flex; align-items:center; justify-content:center; padding:18px; opacity:0; pointer-events:none; transition:opacity .22s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--bg2); border:1px solid rgba(255,255,255,.1); border-radius:20px; width:100%; max-width:580px; box-shadow:0 30px 80px rgba(0,0,0,.6); transform:scale(.94) translateY(22px); transition:transform .25s cubic-bezier(.2,.7,.3,1); max-height:92vh; overflow-y:auto; }
+.modal-overlay.open .modal { transform:scale(1) translateY(0); }
+.modal-header { padding:20px 24px 15px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--bg2); z-index:2; }
+.modal-title { font-size:17px; font-weight:700; font-family:'Unbounded',sans-serif; }
+.modal-close { width:34px; height:34px; border-radius:10px; border:none; background:rgba(255,255,255,.06); cursor:pointer; font-size:16px; color:var(--muted); transition:all .2s; }
+.modal-close:hover { background:rgba(255,255,255,.13); color:var(--text); }
+.modal-body { padding:20px 24px; }
+.modal-footer { padding:16px 24px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; position:sticky; bottom:0; background:var(--bg2); }
+.form-group { margin-bottom:16px; }
+.form-label { display:block; font-size:12.5px; font-weight:600; margin-bottom:7px; color:#c3c9d6; }
+.req { color:var(--red); margin-left:2px; }
+.form-input, .form-textarea, .form-select {
+  width:100%; padding:11px 13px; border-radius:11px; border:1px solid var(--border); font-size:14px;
+  font-family:inherit; color:var(--text); background:rgba(255,255,255,.04); transition:all .2s;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { outline:none; border-color:var(--border-hi); box-shadow:0 0 0 3px rgba(251,191,36,.12); }
+.form-textarea { resize:vertical; min-height:76px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+input[type="date"], input[type="datetime-local"] { color-scheme:dark; }
+.hint-box { background:rgba(251,191,36,.07); border:1px solid rgba(251,191,36,.22); border-radius:11px; padding:11px 15px; font-size:12.5px; color:#fcd34d; margin-bottom:16px; line-height:1.5; }
+.wt-selector { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.wt-sel { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; padding:9px 11px; border:1px solid var(--border); border-radius:9px; transition:all .15s; user-select:none; background:rgba(255,255,255,.02); }
+.wt-sel:hover { border-color:var(--border-hi); }
+.wt-sel.on { border-color:var(--amber); background:rgba(251,191,36,.08); font-weight:600; }
+.wt-sel input { accent-color:var(--amber); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
+.wt-sel .u { margin-left:auto; font-size:11px; color:var(--dim); }
+.vol-item { border:1px solid var(--border); border-radius:11px; padding:11px 13px; margin-bottom:9px; background:rgba(255,255,255,.02); }
+.vol-item.on { border-color:rgba(251,191,36,.4); background:rgba(251,191,36,.05); }
+.vol-head { display:flex; align-items:center; gap:9px; cursor:pointer; user-select:none; }
+.vol-head input[type=checkbox] { accent-color:var(--amber); width:16px; height:16px; cursor:pointer; }
+.vol-name { font-size:13.5px; font-weight:600; flex:1; }
+.vol-unit { font-size:11.5px; color:var(--dim); }
+.vol-inputs { margin-top:10px; display:flex; gap:9px; align-items:center; }
+.vol-inputs .form-input { flex:1; }
+.acc-row { display:flex; align-items:center; gap:12px; border:1px solid var(--border); border-radius:11px; padding:12px 14px; margin-bottom:9px; background:rgba(255,255,255,.02); }
+.acc-info { flex:1; min-width:0; }
+.acc-name { font-size:13.5px; font-weight:600; }
+.acc-sub { font-size:11.5px; color:var(--muted); margin-top:2px; }
+.acc-input { width:110px; text-align:center; font-weight:700; }
+.acc-input.cut { border-color:rgba(248,113,113,.5); color:var(--red); }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.dfield { background:rgba(255,255,255,.04); border-radius:10px; padding:10px 13px; }
+.dfield-l { font-size:10.5px; color:var(--dim); margin-bottom:3px; text-transform:uppercase; letter-spacing:.5px; }
+.dfield-v { font-size:13.5px; font-weight:500; }
+.dsec-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:16px 0 10px; }
+.dtl-steps { display:flex; flex-direction:column; }
+.dtl-step { display:flex; gap:12px; }
+.dtl-ind { display:flex; flex-direction:column; align-items:center; }
+.dtl-dot { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+.dtl-dot.done { background:rgba(74,222,128,.18); color:var(--emerald); border:1.5px solid var(--emerald); }
+.dtl-dot.cur { background:rgba(251,191,36,.18); color:var(--amber); border:1.5px solid var(--amber); animation:pulse 1.6s infinite; }
+.dtl-dot.pend { background:rgba(255,255,255,.05); color:var(--dim); border:1.5px solid #2b3548; }
+.dtl-line { width:2px; height:22px; background:#2b3548; margin:2px 0; }
+.dtl-line.done { background:var(--emerald); }
+.dtl-txt { padding:3px 0 18px; }
+.dtl-name { font-size:13px; font-weight:600; }
+.dtl-date { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* ── TOASTS ── */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:400; display:flex; flex-direction:column; gap:8px; }
+.toast { background:#1c2434; border:1px solid var(--border); color:var(--text); padding:13px 18px; border-radius:13px; font-size:13.5px; box-shadow:0 14px 40px rgba(0,0,0,.5); display:flex; align-items:center; gap:9px; animation:toastIn .35s cubic-bezier(.2,.7,.3,1); max-width:340px; }
+.toast.ok { border-color:rgba(74,222,128,.4); }
+.toast.err { border-color:rgba(248,113,113,.4); }
+@keyframes toastIn { from{transform:translateX(110%); opacity:0;} to{transform:translateX(0); opacity:1;} }
+
+/* ── MOBILE ── */
+.bottom-nav { display:none; }
+@media (max-width:960px) {
+  .stats-bar { grid-template-columns:repeat(3,1fr); gap:10px; }
+  .stats-summary { grid-template-columns:repeat(3,1fr); gap:10px; }
+}
+@media (max-width:640px) {
+  .header-inner { padding:12px 16px; }
+  .brand-title { font-size:14px; }
+  .brand-icon { width:40px; height:40px; font-size:19px; }
+  .live-pill, .header-add-desktop { display:none; }
+  .main { padding:18px 14px 120px; }
+  .view-tabs { padding:0 12px; }
+  .view-tab { padding:10px 14px; font-size:13px; }
+  .stats-bar { grid-template-columns:repeat(2,1fr); }
+  .stat-count { font-size:25px; }
+  .calls-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .toolbar { flex-wrap:wrap; }
+  .last-updated { display:none; }
+  .wt-selector { grid-template-columns:1fr; }
+  .stats-summary { grid-template-columns:1fr 1fr; }
+  .month-label { min-width:0; font-size:16px; }
+  .cc-actions { width:100%; justify-content:stretch; }
+  .cc-actions .btn-a { flex:1; padding:9px 8px; }
+  .cc-footer { flex-direction:column; align-items:stretch; gap:8px; }
+  .bottom-nav {
+    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:150;
+    background:rgba(7,9,15,.92); backdrop-filter:blur(18px); border-top:1px solid var(--border);
+    padding:8px 20px calc(8px + env(safe-area-inset-bottom)); justify-content:space-around; align-items:center;
+  }
+  .bn-btn { background:none; border:none; color:var(--muted); font-family:inherit; font-size:10.5px; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:4px 14px; }
+  .bn-btn .bi { font-size:21px; }
+  .bn-btn.active { color:var(--amber); }
+  .bn-add { width:52px; height:52px; border-radius:50%; background:var(--grad); border:none; font-size:26px; color:#1a1000; cursor:pointer; box-shadow:0 6px 20px rgba(249,115,22,.45); margin-top:-24px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+}
+@media print {
+  body { background:#fff; color:#000; }
+  .header, .view-tabs, .bottom-nav, .stats-actions, .month-nav button { display:none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+          <rect x="3.2" y="11" width="4.6" height="9.5" rx="1.2" fill="#1a1000"/>
+          <rect x="9.7" y="6.5" width="4.6" height="14" rx="1.2" fill="#1a1000"/>
+          <rect x="16.2" y="10" width="4.6" height="10.5" rx="1.2" fill="#1a1000" opacity=".55"/>
+          <path d="M16.5 3.5l2.2 2.2 3.8-3.9" stroke="#1a1000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="min-width:0;">
+        <div class="brand-title">ВЫЗОВЫ СТРОЙКОНТРОЛЯ</div>
+        <div class="brand-sub"><b>Никита Паршин</b> · v2.0</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-pill"><span class="live-dot"></span><span id="syncLabel">live</span></div>
+      <button class="icon-btn" onclick="openModal('settingsModal')" title="Настройки">⚙️</button>
+      <button class="btn btn-grad header-add-desktop" onclick="openAddModal()">＋ Новый вызов</button>
+    </div>
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" id="vtBoard" onclick="setView('board')">📋 Вызовы</button>
+    <button class="view-tab" id="vtStats" onclick="setView('stats')">📊 Статистика</button>
+  </div>
+</header>
+
+<main class="main">
+  <!-- ═══ BOARD VIEW ═══ -->
+  <div id="viewBoard">
+    <div class="stats-bar">
+      <div class="stat-card" style="--sc:#93a1b8;--i:0" onclick="setFilter('all')" id="sc_all"><div class="stat-top"><div class="stat-ico">📋</div><div class="stat-count" id="cntAll">0</div></div><div class="stat-label">Всего вызовов</div></div>
+      <div class="stat-card" style="--sc:#60a5fa;--i:1" onclick="setFilter('live')" id="sc_live"><div class="stat-top"><div class="stat-ico">⚡</div><div class="stat-count" id="cntLive">0</div></div><div class="stat-label">В работе (live)</div></div>
+      <div class="stat-card" style="--sc:#34d399;--i:2" onclick="setFilter('customer_called')" id="sc_customer_called"><div class="stat-top"><div class="stat-ico">📞</div><div class="stat-count" id="cntSS">0</div></div><div class="stat-label">Вызов на Строй-Сити</div></div>
+      <div class="stat-card" style="--sc:#fbbf24;--i:3" onclick="setFilter('tech_called')" id="sc_tech_called"><div class="stat-top"><div class="stat-ico">🔔</div><div class="stat-count" id="cntGrav">0</div></div><div class="stat-label">Вызов на Гравион</div></div>
+      <div class="stat-card" style="--sc:#4ade80;--i:4" onclick="setFilter('closed')" id="sc_closed"><div class="stat-top"><div class="stat-ico">✅</div><div class="stat-count" id="cntDone">0</div></div><div class="stat-label">Выполнено</div></div>
+    </div>
+
+    <div class="next-panel" id="nextPanel" style="display:none;">
+      <div class="next-title">🎯 Что дальше — действия на сегодня</div>
+      <div class="next-list" id="nextList"></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Поиск: работа, участок, подрядчик..." oninput="renderCalls()"></div>
+      <span class="last-updated" id="lastUpdated"></span>
+      <button class="btn btn-ghost btn-sm" onclick="loadCalls(true)">🔄</button>
+    </div>
+
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab active" data-f="all" onclick="setFilter('all')">Все <span class="ftc" id="tAll">0</span></button>
+      <button class="filter-tab" data-f="new" onclick="setFilter('new')">🆕 Новые <span class="ftc" id="tNew">0</span></button>
+      <button class="filter-tab" data-f="customer_called" onclick="setFilter('customer_called')">📞 СС вызван <span class="ftc" id="tCC">0</span></button>
+      <button class="filter-tab" data-f="customer_accepted" onclick="setFilter('customer_accepted')">✍️ СС принял <span class="ftc" id="tCA">0</span></button>
+      <button class="filter-tab" data-f="tech_called" onclick="setFilter('tech_called')">🔔 Гравион вызван <span class="ftc" id="tTC">0</span></button>
+      <button class="filter-tab" data-f="closed" onclick="setFilter('closed')">✅ Выполнены <span class="ftc" id="tCl">0</span></button>
+      <button class="filter-tab" data-f="rejected" onclick="setFilter('rejected')">❌ Не приняты <span class="ftc" id="tRj">0</span></button>
+    </div>
+
+    <div id="callsContainer"><div class="loading"><div class="spinner"></div><span>Загрузка данных...</span></div></div>
+  </div>
+
+  <!-- ═══ STATS VIEW ═══ -->
+  <div id="viewStats" style="display:none;">
+    <div class="stats-head">
+      <div class="month-nav">
+        <button class="icon-btn" onclick="shiftMonth(-1)">‹</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button class="icon-btn" onclick="shiftMonth(1)">›</button>
+      </div>
+      <div class="stats-actions">
+        <button class="btn btn-ghost btn-sm" onclick="copyStats()">📋 Копировать</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨️ Печать</button>
+      </div>
+    </div>
+    <div class="stats-summary">
+      <div class="sum-card" style="--i:0"><div class="sum-val g" id="stCalls">0</div><div class="sum-lbl">закрытых вызовов (чек-листов)</div></div>
+      <div class="sum-card" style="--i:1"><div class="sum-val" id="stM2">0</div><div class="sum-lbl">м² принято за месяц</div></div>
+      <div class="sum-card" style="--i:2"><div class="sum-val" id="stMP">0</div><div class="sum-lbl">м.п. принято за месяц</div></div>
+    </div>
+    <div class="cat-list" id="catList"></div>
+  </div>
+</main>
+
+<!-- MOBILE NAV -->
+<nav class="bottom-nav">
+  <button class="bn-btn active" id="bnBoard" onclick="setView('board')"><span class="bi">📋</span>Вызовы</button>
+  <button class="bn-add" onclick="openAddModal()">＋</button>
+  <button class="bn-btn" id="bnStats" onclick="setView('stats')"><span class="bi">📊</span>Статистика</button>
+</nav>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══ ADD MODAL ═══ -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">➕ Новый вызов</div><button class="modal-close" onclick="closeModal('addModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Подрядчик <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f_contractor" list="contractorsList" placeholder="Организация-подрядчик">
+        <datalist id="contractorsList"></datalist>
+      </div>
+      <div class="form-group"><label class="form-label">Наименование работы <span class="req">*</span></label><input type="text" class="form-input" id="f_workName" placeholder="Например: Монтаж терракотовой плитки"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Местоположение <span class="req">*</span></label><input type="text" class="form-input" id="f_location" placeholder="Кор. 1, в/о А-Г, отм. ..."></div>
+        <div class="form-group"><label class="form-label">Вызов Строй-Сити на дату</label><input type="date" class="form-input" id="f_ssDate"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Виды работ <span style="color:var(--dim);font-weight:400;">(можно несколько — комбинированный)</span></label>
+        <div class="wt-selector" id="f_workTypes"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Примечания</label><textarea class="form-textarea" id="f_notes" placeholder="Доп. информация..."></textarea></div>
+      <div class="form-group"><label class="form-label">Ответственный (прораб)</label><input type="text" class="form-input" id="f_responsible" placeholder="ФИО"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('addModal')">Отмена</button><button class="btn btn-grad" onclick="saveCall()">💾 Создать</button></div>
+  </div>
+</div>
+
+<!-- ═══ GRAVION CALL MODAL ═══ -->
+<div class="modal-overlay" id="gravModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔔 Вызов Гравиона</div><button class="modal-close" onclick="closeModal('gravModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="hint-box">Отметь виды работ и укажи подаваемые объёмы. Можно несколько — комбинированный вызов.</div>
+      <div class="form-group"><label class="form-label">Дата вызова</label><input type="date" class="form-input" id="g_date"></div>
+      <div class="form-group"><label class="form-label">Виды работ и объёмы <span class="req">*</span></label><div id="g_workTypes"></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('gravModal')">Отмена</button><button class="btn btn-grad" onclick="confirmGravCall()">🔔 Вызвать Гравион</button></div>
+  </div>
+</div>
+
+<!-- ═══ ACCEPT (CLOSE) MODAL ═══ -->
+<div class="modal-overlay" id="acceptModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">✅ Сколько принял Гравион?</div><button class="modal-close" onclick="closeModal('acceptModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="hint-box">Если принято всё — оставь как есть. Если Гравион вычеркнул участки — впиши фактически принятый объём.</div>
+      <div id="a_rows"></div>
+      <div class="form-group" style="margin-top:14px;"><label class="form-label">Дата приёмки (чек-лист подписан)</label><input type="date" class="form-input" id="a_date"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('acceptModal')">Отмена</button><button class="btn btn-grad" onclick="confirmAccept()">✅ Закрыть вызов</button></div>
+  </div>
+</div>
+
+<!-- ═══ SS DATE MODAL ═══ -->
+<div class="modal-overlay" id="ssModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="ssModalTitle">📞 Вызов Строй-Сити</div><button class="modal-close" onclick="closeModal('ssModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label" id="ssDateLabel">Дата вызова</label><input type="date" class="form-input" id="ss_date"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('ssModal')">Отмена</button><button class="btn btn-grad" id="ssConfirmBtn" onclick="confirmSS()">Подтвердить</button></div>
+  </div>
+</div>
+
+<!-- ═══ DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Детали вызова</div><button class="modal-close" onclick="closeModal('detailModal')">✕</button></div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer" id="detailFooter"></div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">⚙️ Настройки</div><button class="modal-close" onclick="closeModal('settingsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="hint-box">URL веб-приложения Apps Script (v2, новая таблица). Пока URL не указан — сайт работает в демо-режиме: данные хранятся только в этом браузере.</div>
+      <div class="form-group"><label class="form-label">URL Apps Script</label><input type="url" class="form-input" id="s_url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('settingsModal')">Отмена</button><button class="btn btn-grad" onclick="saveSettings()">💾 Сохранить</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════
+   КОНФИГУРАЦИЯ
+   После деплоя Apps Script вставь URL сюда ↓ (или через ⚙️ на сайте)
+════════════════════════════════════════════════════════════ */
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3H_7bxq91HDq8zQE34xhX9ieUixKt8dMsobI0yqcaj4CoDZ3yniz1BSAYVGcs6ZlMYA/exec';
+
+const WORK_TYPES = [
+  {id:'brackets',    label:'Монтаж кронштейнов',        unit:'м²'},
+  {id:'insul1',      label:'Утеплитель 1 слой',         unit:'м²'},
+  {id:'insul2',      label:'Утеплитель 2 слой',         unit:'м²'},
+  {id:'rails',       label:'Монтаж направляющих',       unit:'м²'},
+  {id:'firecut',     label:'Противопожарная отсечка',   unit:'м.п.'},
+  {id:'sfb',         label:'Монтаж СФБ',                unit:'м²'},
+  {id:'akp',         label:'Монтаж АКП',                unit:'м²'},
+  {id:'terracotta',  label:'Терракотовая плитка',       unit:'м²'},
+  {id:'keramogranit',label:'Керамогранит',              unit:'м²'},
+  {id:'reveals',     label:'Откосы',                    unit:'м.п.'},
+  {id:'flashings',   label:'Отливы',                    unit:'м.п.'},
+];
+const WT = Object.fromEntries(WORK_TYPES.map(w=>[w.id,w]));
+
+const STATUS = {
+  new:               {label:'Ожидает вызова',    icon:'🆕', color:'#60a5fa'},
+  customer_called:   {label:'Строй-Сити вызван', icon:'📞', color:'#34d399'},
+  customer_accepted: {label:'Строй-Сити принял', icon:'✍️', color:'#a78bfa'},
+  tech_called:       {label:'Гравион вызван',    icon:'🔔', color:'#fbbf24'},
+  closed:            {label:'Выполнен',          icon:'✅', color:'#4ade80'},
+  rejected:          {label:'Не принят',         icon:'❌', color:'#f87171'},
+};
+const FLOW = ['new','customer_called','customer_accepted','tech_called','closed'];
+const TL_STEPS = ['Создан','СС вызван','СС принял','Гравион вызван','Принято'];
+
+let calls = [], filter = 'all', view = 'board', statsMonth = new Date();
+let pendingId = null;
+let scriptUrl = localStorage.getItem('v2_scriptUrl') || DEFAULT_SCRIPT_URL;
+const demoMode = () => !scriptUrl;
+
+/* ── UTILS ── */
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayStr = (off=0) => { const d=new Date(); d.setDate(d.getDate()+off); return d.toISOString().slice(0,10); };
+const fmtD = s => { if(!s) return '—'; const d=new Date(s); return isNaN(d)?String(s):d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); };
+const fmtNum = n => (Math.round(n*100)/100).toLocaleString('ru-RU');
+const parseWT = s => { try { const a=JSON.parse(s); return Array.isArray(a)?a:[]; } catch(e){ return []; } };
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.textContent = msg;
+  $('toastContainer').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(()=>el.remove(),400); }, 3200);
+}
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+
+/* ── API (Apps Script или демо-режим) ── */
+async function apiGetAll() {
+  if (demoMode()) return JSON.parse(localStorage.getItem('v2_demo')||'[]');
+  const res = await fetch(scriptUrl+'?action=getAll&_t='+Date.now(), {cache:'no-store'});
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error);
+  return data.calls;
+}
+async function apiPost(payload) {
+  if (demoMode()) {
+    let arr = JSON.parse(localStorage.getItem('v2_demo')||'[]');
+    if (payload.action==='add') {
+      const id = String(Date.now());
+      arr.push(Object.assign({id, createdAt:new Date().toISOString(), status:'new'}, payload, {action:undefined}));
+    } else if (payload.action==='update') {
+      const c = arr.find(x=>x.id===payload.id);
+      if (c) Object.keys(payload).forEach(k=>{ if(k!=='action') c[k]=payload[k]; });
+    }
+    localStorage.setItem('v2_demo', JSON.stringify(arr));
+    return {success:true};
+  }
+  const res = await fetch(scriptUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error);
+  return data;
+}
+
+async function loadCalls(manual=false) {
+  try {
+    calls = await apiGetAll();
+    localStorage.setItem('v2_cache', JSON.stringify(calls));
+    $('lastUpdated').textContent = 'Обновлено: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    $('syncLabel').textContent = demoMode() ? 'демо' : 'live';
+    if (manual) toast('Данные обновлены');
+  } catch(e) {
+    const c = localStorage.getItem('v2_cache');
+    if (c) calls = JSON.parse(c);
+    if (manual) toast('Нет связи, показан кэш', 'err');
+  }
+  renderAll();
+}
+
+/* ── RENDER ── */
+function renderAll(){ updateStats(); renderNext(); renderCalls(); renderStats(); updateContractors(); }
+
+function animateCount(el, target) {
+  const from = parseInt(el.dataset.v||'0'), to = target;
+  el.dataset.v = to;
+  if (from === to) { el.textContent = to; return; }
+  const t0 = performance.now(), dur = 600;
+  (function step(t){
+    const p = Math.min((t-t0)/dur, 1), e = 1-Math.pow(1-p,3);
+    el.textContent = Math.round(from+(to-from)*e);
+    if (p<1) requestAnimationFrame(step);
+  })(t0);
+}
+
+function updateStats() {
+  const c = {all:calls.length, new:0, customer_called:0, customer_accepted:0, tech_called:0, closed:0, rejected:0};
+  calls.forEach(x=>{ if(c[x.status]!==undefined) c[x.status]++; });
+  const live = c.new + c.customer_called + c.customer_accepted + c.tech_called;
+  animateCount($('cntAll'), c.all);
+  animateCount($('cntLive'), live);
+  animateCount($('cntSS'), c.customer_called);
+  animateCount($('cntGrav'), c.tech_called);
+  animateCount($('cntDone'), c.closed);
+  $('tAll').textContent=c.all; $('tNew').textContent=c.new; $('tCC').textContent=c.customer_called;
+  $('tCA').textContent=c.customer_accepted; $('tTC').textContent=c.tech_called;
+  $('tCl').textContent=c.closed; $('tRj').textContent=c.rejected;
+}
+
+/* просрочка: следующий шаг не сделан вовремя */
+function isOverdue(c) {
+  const today = todayStr();
+  if (c.status==='new' && c.ssCallDate && c.ssCallDate.slice(0,10) < today) return true;
+  if (c.status==='new' && !c.ssCallDate && c.createdAt && c.createdAt.slice(0,10) < today) return true;
+  if (c.status==='customer_called' && c.ssCallDate && c.ssCallDate.slice(0,10) < today) return true;
+  if (c.status==='tech_called' && c.gravCallDate && c.gravCallDate.slice(0,10) < today) return true;
+  return false;
+}
+
+function nextActionFor(c) {
+  switch(c.status) {
+    case 'new':               return {icon:'📞', text:'Вызвать Строй-Сити', fn:'actSSCall'};
+    case 'customer_called':   return {icon:'✍️', text:'Отметить: Строй-Сити принял', fn:'actSSAccept'};
+    case 'customer_accepted': return {icon:'🔔', text:'Вызвать Гравион', fn:'actGravCall'};
+    case 'tech_called':       return {icon:'✅', text:'Зафиксировать приёмку Гравиона', fn:'actAccept'};
+    default: return null;
+  }
+}
+
+function renderNext() {
+  const items = calls.filter(c=>nextActionFor(c)).map(c=>({c, a:nextActionFor(c), od:isOverdue(c)}))
+    .sort((a,b)=>(b.od?1:0)-(a.od?1:0) || FLOW.indexOf(a.c.status)-FLOW.indexOf(b.c.status));
+  const panel = $('nextPanel');
+  if (!items.length) { panel.style.display='none'; return; }
+  panel.style.display='block';
+  $('nextList').innerHTML = items.slice(0,6).map(({c,a,od})=>`
+    <div class="next-item">
+      <span class="ni-icon">${a.icon}</span>
+      <div class="ni-text"><b>${esc(c.workName)}</b> <span class="ni-loc">· ${esc(c.location)} · ${esc(c.contractor)}</span>
+        ${od?'<div class="ni-overdue">⚠ просрочено — требует действия</div>':''}
+      </div>
+      <button class="btn-a btn-adv" onclick="${a.fn}('${c.id}')">${a.text}</button>
+    </div>`).join('');
+}
+
+function volumesHtml(c) {
+  const wt = parseWT(c.workTypes);
+  if (!wt.length) return '';
+  return '<div class="wt-badges">'+wt.map(w=>{
+    const def = WT[w.id]||{label:w.id,unit:w.unit||''};
+    const unit = w.unit||def.unit;
+    if (c.status==='closed' && w.accepted!==undefined && w.accepted!=='') {
+      const cut = (parseFloat(w.submitted)||0) - (parseFloat(w.accepted)||0);
+      return `<span class="wt-badge acc">✅ ${esc(def.label)}: ${fmtNum(parseFloat(w.accepted)||0)} ${unit}${cut>0?`<span class="cut">(−${fmtNum(cut)})</span>`:''}</span>`;
+    }
+    if (w.submitted!==undefined && w.submitted!=='') {
+      return `<span class="wt-badge">${esc(def.label)}: ${fmtNum(parseFloat(w.submitted)||0)} ${unit}</span>`;
+    }
+    return `<span class="wt-badge">${esc(def.label)}</span>`;
+  }).join('')+'</div>';
+}
+
+function timelineHtml(c) {
+  const idx = c.status==='rejected' ? FLOW.indexOf(c.prevStatus||'new') : FLOW.indexOf(c.status);
+  let h = '<div class="cc-timeline">';
+  for (let i=0; i<FLOW.length; i++) {
+    const cls = i<idx ? 'done' : (i===idx && c.status!=='closed' ? 'cur' : (c.status==='closed'?'done':''));
+    const dotCls = c.status==='closed' ? 'done' : (i<idx?'done':(i===idx?'cur':''));
+    h += `<div class="tl-dot ${dotCls}"><span class="tl-tip">${TL_STEPS[i]}</span></div>`;
+    if (i<FLOW.length-1) h += `<div class="tl-line ${(c.status==='closed'||i<idx)?'done':''}"></div>`;
+  }
+  return h+'</div>';
+}
+
+function actionButtons(c) {
+  const btns = [];
+  const a = nextActionFor(c);
+  if (a) btns.push(`<button class="btn-a btn-adv" onclick="${a.fn}('${c.id}')">${a.icon} ${a.text}</button>`);
+  if (c.status==='rejected') btns.push(`<button class="btn-a btn-res" onclick="actRestore('${c.id}')">↩️ Вернуть</button>`);
+  else if (c.status!=='closed') btns.push(`<button class="btn-a btn-rej" onclick="actReject('${c.id}')">✖</button>`);
+  btns.push(`<button class="btn-a btn-det" onclick="openDetail('${c.id}')">···</button>`);
+  return btns.join('');
+}
+
+function renderCard(c, i) {
+  const st = STATUS[c.status]||STATUS.new;
+  const od = isOverdue(c);
+  return `<div class="call-card ${od?'overdue':''}" style="--sc:${st.color};--i:${i}" id="card_${c.id}">
+    <div class="cc-header">
+      <div class="cc-title">${esc(c.workName)}</div>
+      <span class="cc-badge">${st.icon} ${st.label}</span>
+    </div>
+    ${timelineHtml(c)}
+    <div class="cc-body">
+      <div class="cc-row"><span class="cc-row-ico">🏢</span><span class="cc-row-val">${esc(c.contractor)}</span></div>
+      <div class="cc-row"><span class="cc-row-ico">📍</span><span class="cc-row-muted">${esc(c.location)}</span></div>
+      ${c.ssCallDate?`<div class="cc-row"><span class="cc-row-ico">📞</span><span class="cc-row-muted">Строй-Сити: ${fmtD(c.ssCallDate)}${c.ssAcceptDate?' → принял '+fmtD(c.ssAcceptDate):''}</span></div>`:''}
+      ${c.gravCallDate?`<div class="cc-row"><span class="cc-row-ico">🔔</span><span class="cc-row-muted">Гравион: ${fmtD(c.gravCallDate)}${c.closedAt?' → принял '+fmtD(c.closedAt):''}</span></div>`:''}
+      ${volumesHtml(c)}
+      ${c.notes?`<div class="cc-note">💬 ${esc(c.notes)}</div>`:''}
+      ${od?`<div class="cc-note" style="color:var(--red);font-style:normal;font-weight:600;">⚠ Просрочено — требует действия</div>`:''}
+    </div>
+    <div class="cc-footer">
+      <span class="cc-date">создан ${fmtD(c.createdAt)}${c.responsible?' · '+esc(c.responsible):''}</span>
+      <div class="cc-actions">${actionButtons(c)}</div>
+    </div>
+  </div>`;
+}
+
+function renderCalls() {
+  const q = $('searchInput').value.toLowerCase().trim();
+  let list = calls.filter(c=>{
+    if (filter==='live') { if (['closed','rejected'].includes(c.status)) return false; }
+    else if (filter!=='all' && c.status!==filter) return false;
+    if (q) return [c.workName,c.contractor,c.location,c.responsible,c.notes].some(f=>f&&String(f).toLowerCase().includes(q));
+    return true;
+  });
+  list.sort((a,b)=>{
+    const ac=a.status==='closed'||a.status==='rejected', bc=b.status==='closed'||b.status==='rejected';
+    if (ac!==bc) return ac?1:-1;
+    if (isOverdue(b)!==isOverdue(a)) return isOverdue(b)?1:-1;
+    return new Date(b.createdAt)-new Date(a.createdAt);
+  });
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.toggle('active', t.dataset.f===filter));
+  document.querySelectorAll('.stat-card').forEach(s=>s.classList.remove('active-filter'));
+  const sc = $('sc_'+filter); if (sc) sc.classList.add('active-filter');
+  const el = $('callsContainer');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">${q?'Ничего не найдено':'Вызовов нет'}</div><div>${q?'Измени запрос':'Нажми «＋ Новый вызов»'}</div></div>`;
+    return;
+  }
+  el.innerHTML = '<div class="calls-grid">'+list.map((c,i)=>renderCard(c,Math.min(i,10))).join('')+'</div>';
+}
+
+function setFilter(f){ filter=f; renderCalls(); }
+function setView(v) {
+  view=v;
+  $('viewBoard').style.display = v==='board'?'block':'none';
+  $('viewStats').style.display = v==='stats'?'block':'none';
+  $('vtBoard').classList.toggle('active', v==='board');
+  $('vtStats').classList.toggle('active', v==='stats');
+  $('bnBoard').classList.toggle('active', v==='board');
+  $('bnStats').classList.toggle('active', v==='stats');
+  if (v==='stats') renderStats();
+}
+
+/* ── ДЕЙСТВИЯ ── */
+let ssMode = 'call';
+function actSSCall(id) {
+  pendingId=id; ssMode='call';
+  const c = calls.find(x=>x.id===id);
+  $('ssModalTitle').textContent='📞 Вызов Строй-Сити';
+  $('ssDateLabel').textContent='Дата вызова (обычно завтра)';
+  $('ssConfirmBtn').textContent='📞 Вызвать';
+  $('ss_date').value = (c&&c.ssCallDate)?String(c.ssCallDate).slice(0,10):todayStr(1);
+  openModal('ssModal');
+}
+function actSSAccept(id) {
+  pendingId=id; ssMode='accept';
+  $('ssModalTitle').textContent='✍️ Строй-Сити принял';
+  $('ssDateLabel').textContent='Дата приёмки (подписана бумага)';
+  $('ssConfirmBtn').textContent='✍️ Подтвердить';
+  $('ss_date').value = todayStr();
+  openModal('ssModal');
+}
+async function confirmSS() {
+  const d = $('ss_date').value;
+  if (!d) return toast('Укажи дату','err');
+  const patch = ssMode==='call'
+    ? {status:'customer_called', ssCallDate:d}
+    : {status:'customer_accepted', ssAcceptDate:d};
+  closeModal('ssModal');
+  await mutate(pendingId, patch, ssMode==='call'?'Строй-Сити вызван 📞':'Приёмка Строй-Сити зафиксирована ✍️');
+}
+
+function actGravCall(id) {
+  pendingId=id;
+  const c = calls.find(x=>x.id===id); if(!c) return;
+  const existing = parseWT(c.workTypes);
+  $('g_date').value = todayStr(1);
+  $('g_workTypes').innerHTML = WORK_TYPES.map(w=>{
+    const ex = existing.find(x=>x.id===w.id);
+    const on = !!ex;
+    return `<div class="vol-item ${on?'on':''}" id="gv_${w.id}">
+      <label class="vol-head">
+        <input type="checkbox" ${on?'checked':''} onchange="toggleVol('${w.id}')">
+        <span class="vol-name">${w.label}</span><span class="vol-unit">${w.unit}</span>
+      </label>
+      <div class="vol-inputs" style="display:${on?'flex':'none'};">
+        <input type="number" class="form-input" id="gvol_${w.id}" placeholder="Объём" min="0" step="0.1" value="${ex&&ex.submitted?ex.submitted:''}">
+        <span class="vol-unit" style="min-width:34px;">${w.unit}</span>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('gravModal');
+}
+function toggleVol(id) {
+  const item = $('gv_'+id), cb = item.querySelector('input[type=checkbox]');
+  item.classList.toggle('on', cb.checked);
+  item.querySelector('.vol-inputs').style.display = cb.checked?'flex':'none';
+  if (cb.checked) $('gvol_'+id).focus();
+}
+async function confirmGravCall() {
+  const d = $('g_date').value;
+  if (!d) return toast('Укажи дату вызова','err');
+  const wt = [];
+  for (const w of WORK_TYPES) {
+    const item = $('gv_'+w.id);
+    if (item && item.querySelector('input[type=checkbox]').checked) {
+      const vol = parseFloat($('gvol_'+w.id).value);
+      if (!vol || vol<=0) return toast(`Укажи объём: ${w.label}`,'err');
+      wt.push({id:w.id, unit:w.unit, submitted:vol});
+    }
+  }
+  if (!wt.length) return toast('Выбери хотя бы один вид работ','err');
+  closeModal('gravModal');
+  await mutate(pendingId, {status:'tech_called', gravCallDate:d, workTypes:JSON.stringify(wt)}, 'Гравион вызван 🔔');
+}
+
+function actAccept(id) {
+  pendingId=id;
+  const c = calls.find(x=>x.id===id); if(!c) return;
+  const wt = parseWT(c.workTypes);
+  if (!wt.length) { toast('Нет поданных объёмов — сначала вызови Гравион','err'); return; }
+  $('a_date').value = todayStr();
+  $('a_rows').innerHTML = wt.map(w=>{
+    const def = WT[w.id]||{label:w.id,unit:w.unit||''};
+    return `<div class="acc-row">
+      <div class="acc-info">
+        <div class="acc-name">${esc(def.label)}</div>
+        <div class="acc-sub">подано: ${fmtNum(parseFloat(w.submitted)||0)} ${w.unit||def.unit}</div>
+      </div>
+      <input type="number" class="form-input acc-input" id="acc_${w.id}" value="${w.submitted}" min="0" step="0.1"
+        oninput="this.classList.toggle('cut', parseFloat(this.value)<${parseFloat(w.submitted)||0})">
+    </div>`;
+  }).join('');
+  openModal('acceptModal');
+}
+async function confirmAccept() {
+  const c = calls.find(x=>x.id===pendingId); if(!c) return;
+  const d = $('a_date').value;
+  if (!d) return toast('Укажи дату приёмки','err');
+  const wt = parseWT(c.workTypes);
+  for (const w of wt) {
+    const v = parseFloat($('acc_'+w.id).value);
+    if (isNaN(v)||v<0) return toast('Проверь принятые объёмы','err');
+    if (v > (parseFloat(w.submitted)||0)) return toast('Принято не может быть больше поданного','err');
+    w.accepted = v;
+  }
+  closeModal('acceptModal');
+  await mutate(pendingId, {status:'closed', closedAt:d, workTypes:JSON.stringify(wt)}, 'Вызов закрыт, чек-лист подписан ✅');
+}
+
+async function actReject(id) {
+  const c = calls.find(x=>x.id===id); if(!c) return;
+  if (!confirm('Отметить вызов как «Не принят»?')) return;
+  await mutate(id, {status:'rejected', prevStatus:c.status}, 'Вызов отмечен как не принятый');
+}
+async function actRestore(id) {
+  const c = calls.find(x=>x.id===id); if(!c) return;
+  await mutate(id, {status:c.prevStatus||'new', prevStatus:''}, 'Вызов возвращён в работу ↩️');
+}
+
+async function mutate(id, patch, msg) {
+  const c = calls.find(x=>x.id===id);
+  const backup = c ? JSON.parse(JSON.stringify(c)) : null;
+  if (c) Object.assign(c, patch); // оптимистичное обновление
+  renderAll();
+  try {
+    await apiPost(Object.assign({action:'update', id}, patch));
+    toast(msg);
+  } catch(e) {
+    if (c && backup) Object.assign(c, backup);
+    renderAll();
+    toast('Ошибка сохранения: '+e.message,'err');
+  }
+}
+
+/* ── СОЗДАНИЕ ── */
+function openAddModal() {
+  $('f_contractor').value=''; $('f_workName').value=''; $('f_location').value='';
+  $('f_notes').value=''; $('f_responsible').value='';
+  $('f_ssDate').value = todayStr(1);
+  $('f_workTypes').innerHTML = WORK_TYPES.map(w=>`
+    <label class="wt-sel" id="ws_${w.id}">
+      <input type="checkbox" onchange="$('ws_${w.id}').classList.toggle('on',this.checked)">
+      ${w.label}<span class="u">${w.unit}</span>
+    </label>`).join('');
+  openModal('addModal');
+  setTimeout(()=>$('f_contractor').focus(),250);
+}
+async function saveCall() {
+  const contractor=$('f_contractor').value.trim(), workName=$('f_workName').value.trim(), location=$('f_location').value.trim();
+  if (!contractor||!workName||!location) return toast('Заполни подрядчика, работу и участок','err');
+  const wt = WORK_TYPES.filter(w=>$('ws_'+w.id).querySelector('input').checked).map(w=>({id:w.id, unit:w.unit}));
+  const payload = {
+    action:'add', contractor, workName, location,
+    ssCallDate: $('f_ssDate').value||'',
+    notes: $('f_notes').value.trim(), responsible: $('f_responsible').value.trim(),
+    workTypes: JSON.stringify(wt), status:'new', createdAt:new Date().toISOString()
+  };
+  closeModal('addModal');
+  try {
+    await apiPost(payload);
+    toast('Вызов создан 🆕');
+    await loadCalls();
+  } catch(e) { toast('Ошибка: '+e.message,'err'); }
+}
+
+function updateContractors() {
+  const set = [...new Set(calls.map(c=>c.contractor).filter(Boolean))].sort();
+  $('contractorsList').innerHTML = set.map(c=>`<option value="${esc(c)}">`).join('');
+}
+
+/* ── ДЕТАЛИ ── */
+function openDetail(id) {
+  const c = calls.find(x=>x.id===id); if(!c) return;
+  const st = STATUS[c.status]||STATUS.new;
+  const wt = parseWT(c.workTypes);
+  const steps = [
+    {n:'Вызов создан', d:c.createdAt},
+    {n:'Строй-Сити вызван', d:c.ssCallDate&&FLOW.indexOf(c.status)>=1?c.ssCallDate:null, plan:c.ssCallDate},
+    {n:'Строй-Сити принял', d:c.ssAcceptDate},
+    {n:'Гравион вызван', d:c.gravCallDate},
+    {n:'Гравион принял (чек-лист)', d:c.closedAt},
+  ];
+  const curIdx = c.status==='rejected' ? FLOW.indexOf(c.prevStatus||'new') : FLOW.indexOf(c.status);
+  $('detailBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="dfield"><div class="dfield-l">Статус</div><div class="dfield-v" style="color:${st.color}">${st.icon} ${st.label}</div></div>
+      <div class="dfield"><div class="dfield-l">Подрядчик</div><div class="dfield-v">${esc(c.contractor)}</div></div>
+      <div class="dfield" style="grid-column:1/-1;"><div class="dfield-l">Работа</div><div class="dfield-v">${esc(c.workName)}</div></div>
+      <div class="dfield" style="grid-column:1/-1;"><div class="dfield-l">Местоположение</div><div class="dfield-v">${esc(c.location)}</div></div>
+      ${c.responsible?`<div class="dfield"><div class="dfield-l">Ответственный</div><div class="dfield-v">${esc(c.responsible)}</div></div>`:''}
+      ${c.notes?`<div class="dfield" style="grid-column:1/-1;"><div class="dfield-l">Примечания</div><div class="dfield-v">${esc(c.notes)}</div></div>`:''}
+    </div>
+    ${wt.length?`<div class="dsec-title">Виды работ и объёмы</div>${volumesHtml(c)}`:''}
+    <div class="dsec-title">Хронология</div>
+    <div class="dtl-steps">${steps.map((s,i)=>{
+      const done = i<=curIdx && (i===0 || s.d) || (c.status==='closed');
+      const cur = i===curIdx+ (c.status==='closed'?99:0) && c.status!=='closed';
+      const cls = (c.status==='closed'||i<=curIdx&&s.d||i===0) ? 'done' : (i===curIdx+1&&c.status!=='closed'?'cur':'pend');
+      return `<div class="dtl-step">
+        <div class="dtl-ind"><div class="dtl-dot ${cls}">${cls==='done'?'✓':i+1}</div>${i<steps.length-1?`<div class="dtl-line ${cls==='done'?'done':''}"></div>`:''}</div>
+        <div class="dtl-txt"><div class="dtl-name">${s.n}</div><div class="dtl-date">${s.d?fmtD(s.d):(s.plan?'план: '+fmtD(s.plan):'—')}</div></div>
+      </div>`;
+    }).join('')}</div>`;
+  $('detailFooter').innerHTML = actionButtons(c);
+  openModal('detailModal');
+}
+
+/* ── СТАТИСТИКА ── */
+function shiftMonth(d){ statsMonth.setMonth(statsMonth.getMonth()+d); renderStats(); }
+
+function statsData() {
+  const y=statsMonth.getFullYear(), m=statsMonth.getMonth();
+  const closed = calls.filter(c=>{
+    if (c.status!=='closed'||!c.closedAt) return false;
+    const d = new Date(c.closedAt);
+    return d.getFullYear()===y && d.getMonth()===m;
+  });
+  const byCat = {};
+  closed.forEach(c=>parseWT(c.workTypes).forEach(w=>{
+    const v = parseFloat(w.accepted!==undefined&&w.accepted!==''?w.accepted:0)||0;
+    if (v<=0) return;
+    if (!byCat[w.id]) byCat[w.id]={vol:0, unit:w.unit||(WT[w.id]||{}).unit||''};
+    byCat[w.id].vol += v;
+  }));
+  return {closed, byCat};
+}
+
+function renderStats() {
+  $('monthLabel').textContent = statsMonth.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}).replace(/^./,s=>s.toUpperCase());
+  const {closed, byCat} = statsData();
+  let m2=0, mp=0;
+  Object.values(byCat).forEach(x=>{ if(x.unit==='м²') m2+=x.vol; else mp+=x.vol; });
+  $('stCalls').textContent = closed.length;
+  $('stM2').textContent = fmtNum(m2);
+  $('stMP').textContent = fmtNum(mp);
+  const entries = Object.entries(byCat).sort((a,b)=>b[1].vol-a[1].vol);
+  const max = entries.length?entries[0][1].vol:1;
+  $('catList').innerHTML = entries.length ? entries.map(([id,x],i)=>{
+    const def = WT[id]||{label:id};
+    return `<div class="cat-row" style="--i:${i}">
+      <div class="cat-top"><span class="cat-name">${esc(def.label)}</span><span class="cat-val">${fmtNum(x.vol)} <span>${x.unit}</span></span></div>
+      <div class="cat-bar-bg"><div class="cat-bar" data-w="${(x.vol/max*100).toFixed(1)}"></div></div>
+    </div>`;
+  }).join('') : `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Нет принятых работ</div><div>За этот месяц закрытых вызовов не было</div></div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.cat-bar').forEach(b=>b.style.width=b.dataset.w+'%');
+  }));
+}
+
+function statsText() {
+  const {closed, byCat} = statsData();
+  const label = $('monthLabel').textContent;
+  let t = `Статистика принятых работ — ${label}\nЗакрытых вызовов (чек-листов): ${closed.length}\n\n`;
+  Object.entries(byCat).sort((a,b)=>b[1].vol-a[1].vol).forEach(([id,x])=>{
+    t += `${(WT[id]||{label:id}).label}: ${fmtNum(x.vol)} ${x.unit}\n`;
+  });
+  return t;
+}
+function copyStats() {
+  navigator.clipboard.writeText(statsText()).then(()=>toast('Статистика скопирована 📋')).catch(()=>toast('Не удалось скопировать','err'));
+}
+function exportCSV() {
+  const {byCat} = statsData();
+  let csv = '﻿Категория;Принято;Ед.\n';
+  Object.entries(byCat).sort((a,b)=>b[1].vol-a[1].vol).forEach(([id,x])=>{
+    csv += `${(WT[id]||{label:id}).label};${String(x.vol).replace('.',',')};${x.unit}\n`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `статистика_${statsMonth.getFullYear()}-${String(statsMonth.getMonth()+1).padStart(2,'0')}.csv`;
+  a.click();
+  toast('CSV выгружен ⬇️');
+}
+
+/* ── НАСТРОЙКИ / СТАРТ ── */
+function saveSettings() {
+  scriptUrl = $('s_url').value.trim();
+  localStorage.setItem('v2_scriptUrl', scriptUrl);
+  closeModal('settingsModal');
+  toast(scriptUrl?'URL сохранён, загружаю данные':'Демо-режим (данные в браузере)');
+  loadCalls();
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  $('s_url').value = scriptUrl;
+  document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{ if(e.target===el) closeModal(el.id); }));
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+  loadCalls();
+  setInterval(()=>{ if(!document.querySelector('.modal-overlay.open')) loadCalls(); }, 30000);
+});
+</script>
+</body>
+</html>
