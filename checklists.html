@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Чек-листы - Вызовы стройконтроля</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2316181D'/%3E%3Cpath d='M9 22V13.5L16 9l7 4.5V22' stroke='%23F5F5F2' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M13 22v-5h6v5' stroke='%23F5F5F2' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   ЧЕК-ЛИСТЫ · та же дизайн-система, что и в index.html (v3)
+══════════════════════════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:#F1F1EF;
+  --surface:#FFFFFF;
+  --shell:rgba(22,24,29,.045);
+  --line:rgba(22,24,29,.08);
+  --line-strong:rgba(22,24,29,.16);
+  --ink:#16181D;
+  --ink-soft:#3A3F47;
+  --muted:#6E7480;
+  --dim:#9BA1AC;
+  --accent:#2E50E8;
+  --green:#188A55;
+  --red:#D64545;
+  --ease:cubic-bezier(.32,.72,0,1);
+  --shadow-soft:0 1px 2px rgba(22,24,29,.04), 0 14px 44px -16px rgba(22,24,29,.14);
+  --shadow-hover:0 2px 4px rgba(22,24,29,.05), 0 26px 60px -20px rgba(22,24,29,.22);
+  --shadow-float:0 30px 90px -24px rgba(22,24,29,.3);
+  --r-shell:26px;
+  --r-card:20px;
+  --r-input:14px;
+}
+
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Manrope',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection { background:rgba(46,80,232,.15); }
+::-webkit-scrollbar { width:9px; height:9px; }
+::-webkit-scrollbar-thumb { background:rgba(22,24,29,.15); border-radius:8px; }
+::-webkit-scrollbar-track { background:transparent; }
+
+svg.ic { display:inline-block; vertical-align:middle; flex-shrink:0; }
+.mono { font-family:'JetBrains Mono',monospace; }
+
+/* ── FLOATING PILL NAV ── */
+.nav {
+  position:fixed; top:16px; left:50%; transform:translateX(-50%);
+  z-index:100; display:flex; align-items:center; gap:4px;
+  padding:7px; border-radius:999px;
+  background:rgba(255,255,255,.78);
+  backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid rgba(22,24,29,.07);
+  box-shadow:var(--shadow-soft);
+  animation:navIn .8s var(--ease) backwards;
+  max-width:calc(100vw - 24px);
+}
+@keyframes navIn { from{opacity:0; transform:translate(-50%,-16px);} to{opacity:1; transform:translate(-50%,0);} }
+.nav-brand {
+  width:38px; height:38px; border-radius:50%; background:var(--ink);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  margin-right:2px;
+}
+.nav-tab {
+  padding:9px 18px; border-radius:999px; border:none; background:none;
+  font-family:inherit; font-size:13.5px; font-weight:600; color:var(--muted);
+  cursor:pointer; transition:all .45s var(--ease); white-space:nowrap;
+  text-decoration:none; display:inline-flex; align-items:center;
+}
+.nav-tab:hover { color:var(--ink); }
+.nav-tab.active { background:var(--ink); color:#fff; }
+.nav-sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+
+.btn-cta {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:6px 6px 6px 20px; border-radius:999px; border:none;
+  background:var(--ink); color:#fff; font-family:inherit; font-size:13.5px; font-weight:700;
+  cursor:pointer; transition:transform .45s var(--ease), box-shadow .45s var(--ease);
+  white-space:nowrap;
+}
+.btn-cta .cta-orb {
+  width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.16);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .45s var(--ease), background .45s var(--ease);
+}
+.btn-cta:hover { box-shadow:0 10px 30px -8px rgba(22,24,29,.45); }
+.btn-cta:hover .cta-orb { transform:translate(2px,-1px) scale(1.08); background:rgba(255,255,255,.26); }
+.btn-cta:active { transform:scale(.97); }
+
+/* ── LAYOUT ── */
+.main { max-width:1280px; margin:0 auto; padding:112px 28px 140px; }
+
+.page-head {
+  display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+  margin-bottom:34px; flex-wrap:wrap;
+  animation:rise .9s var(--ease) backwards;
+}
+.page-title {
+  font-size:clamp(34px, 5vw, 56px); font-weight:800; letter-spacing:-.035em; line-height:.95;
+}
+.page-sub { margin-top:10px; font-size:14px; color:var(--muted); font-weight:500; }
+.sync-chip {
+  display:flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-soft);
+  font-size:12px; font-weight:600; color:var(--muted);
+}
+.sync-dot { width:7px; height:7px; border-radius:50%; background:var(--green); }
+@media (prefers-reduced-motion: no-preference) { .sync-dot { animation:breathe 2.4s var(--ease) infinite; } }
+@keyframes breathe { 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.45; transform:scale(.8);} }
+@keyframes rise { from{opacity:0; transform:translateY(22px);} to{opacity:1; transform:translateY(0);} }
+
+.shell { background:var(--shell); border:1px solid rgba(22,24,29,.05); border-radius:var(--r-shell); padding:6px; }
+.shell-inner { background:var(--surface); border-radius:calc(var(--r-shell) - 6px); box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(22,24,29,.03); }
+
+/* ── ИТОГИ ── */
+.stats-tray { margin-bottom:28px; animation:rise .9s .08s var(--ease) backwards; }
+.sum-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.sum-card {
+  background:var(--surface); border-radius:calc(var(--r-shell) - 6px);
+  padding:26px 24px 22px; cursor:default;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(22,24,29,.03);
+}
+.sum-val { font-size:clamp(32px,3.4vw,46px); font-weight:800; letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums; }
+.sum-lbl { margin-top:10px; font-size:12.5px; color:var(--muted); font-weight:600; }
+
+/* ── РАЗБИВКА ПО ПОЗИЦИЯМ ── */
+.cat-tray { margin-bottom:28px; animation:rise .9s .12s var(--ease) backwards; }
+.cat-inner { padding:8px 24px; }
+.cat-row { padding:16px 0; border-top:1px solid var(--line); cursor:pointer; }
+.cat-row:first-child { border-top:none; }
+.cat-top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:9px; }
+.cat-name { font-size:13.5px; font-weight:700; }
+.cat-val { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; white-space:nowrap; }
+.cat-val span { color:var(--dim); font-size:11px; }
+.cat-bar-bg { height:5px; background:rgba(22,24,29,.06); border-radius:99px; overflow:hidden; }
+.cat-bar { height:100%; background:var(--ink); border-radius:99px; width:0; transition:width 1s var(--ease); }
+
+/* ── TOOLBAR / FILTER CHIPS ── */
+.toolbar { display:flex; gap:10px; align-items:center; margin-bottom:14px; animation:rise .9s .16s var(--ease) backwards; }
+.tool-btn {
+  width:48px; height:48px; border-radius:50%; border:1px solid var(--line);
+  background:var(--surface); color:var(--muted); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-soft); transition:all .45s var(--ease);
+}
+.tool-btn:hover { color:var(--ink); box-shadow:var(--shadow-hover); transform:translateY(-1px); }
+.toolbar-title { font-size:13px; font-weight:800; color:var(--ink-soft); flex:1; }
+
+.filter-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; animation:rise .9s .2s var(--ease) backwards; }
+.chip {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:8px 16px; border-radius:999px; border:1px solid var(--line);
+  background:var(--surface); color:var(--muted);
+  font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+  transition:all .45s var(--ease);
+}
+.chip:hover { color:var(--ink); border-color:var(--line-strong); }
+.chip.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+.chip-n { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; opacity:.55; }
+
+/* ── ВЫБОР КОРПУСА ── */
+.corpus-tray { margin-bottom:24px; animation:rise .9s .04s var(--ease) backwards; }
+.corpus-bar { display:flex; gap:6px; flex-wrap:wrap; padding:6px; }
+.corpus-tab {
+  padding:11px 20px; border-radius:calc(var(--r-shell) - 12px); border:none;
+  background:transparent; color:var(--muted);
+  font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  transition:all .45s var(--ease); flex:1; min-width:110px; text-align:center;
+}
+.corpus-tab:hover { color:var(--ink); }
+.corpus-tab.active { background:var(--ink); color:#fff; box-shadow:var(--shadow-hover); }
+
+.cc-corpus {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+  color:var(--muted); background:var(--shell); border-radius:999px; padding:3px 10px;
+  margin-bottom:6px;
+}
+
+/* ── КАРТОЧКИ ЧЕК-ЛИСТОВ ── */
+.calls-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+.call-shell {
+  background:var(--shell); border:1px solid rgba(22,24,29,.05);
+  border-radius:var(--r-shell); padding:5px;
+  transition:transform .55s var(--ease);
+  animation:rise .7s var(--ease) backwards; animation-delay:calc(var(--i)*60ms);
+}
+.call-shell:hover { transform:translateY(-4px); }
+.call-card {
+  background:var(--surface); border-radius:calc(var(--r-shell) - 5px);
+  overflow:hidden; height:100%; display:flex; flex-direction:column;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(22,24,29,.03);
+  transition:box-shadow .55s var(--ease);
+}
+.call-shell:hover .call-card { box-shadow:var(--shadow-hover); }
+.cc-top { padding:18px 20px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.cc-title { font-size:15.5px; font-weight:800; letter-spacing:-.015em; line-height:1.3; }
+.cc-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:999px; font-size:11px; font-weight:700; white-space:nowrap; flex-shrink:0;
+  background:color-mix(in srgb, var(--sc) 9%, transparent); color:var(--sc);
+}
+.cc-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--sc); }
+.cc-body { padding:0 20px 14px; flex:1; }
+.cc-row { display:flex; align-items:flex-start; gap:9px; margin-bottom:7px; font-size:13px; color:var(--ink-soft); font-weight:500; }
+.cc-row .ic { color:var(--dim); margin-top:1px; }
+.cc-note { color:var(--muted); font-size:12.5px; margin-top:8px; font-weight:500; }
+.cc-footer {
+  padding:13px 20px; border-top:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.cc-meta { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--dim); }
+.cc-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.btn-a {
+  padding:8px 14px; border-radius:999px; border:none;
+  font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;
+  transition:all .4s var(--ease); display:inline-flex; align-items:center; gap:6px;
+}
+.btn-a:active { transform:scale(.96); }
+.btn-det { background:transparent; border:1px solid var(--line); color:var(--muted); }
+.btn-det:hover { color:var(--ink); border-color:var(--line-strong); }
+.btn-rej { background:transparent; border:1px solid var(--line); color:var(--red); }
+.btn-rej:hover { background:color-mix(in srgb, var(--red) 7%, transparent); border-color:color-mix(in srgb, var(--red) 30%, transparent); }
+
+/* ── EMPTY / SKELETON ── */
+.empty-state { text-align:center; padding:100px 20px; }
+.empty-orb {
+  width:72px; height:72px; border-radius:50%; margin:0 auto 20px;
+  background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-soft);
+  display:flex; align-items:center; justify-content:center; color:var(--dim);
+}
+.empty-title { font-size:19px; font-weight:800; letter-spacing:-.02em; margin-bottom:6px; }
+.empty-sub { font-size:13.5px; color:var(--muted); font-weight:500; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(22,24,29,.32);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  display:flex; align-items:center; justify-content:center; padding:18px;
+  opacity:0; pointer-events:none; transition:opacity .35s var(--ease);
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--bg); border-radius:28px; padding:6px;
+  width:100%; max-width:480px; max-height:92vh;
+  box-shadow:var(--shadow-float);
+  transform:scale(.95) translateY(26px);
+  transition:transform .5s var(--ease);
+  display:flex; flex-direction:column;
+}
+.modal-overlay.open .modal { transform:scale(1) translateY(0); }
+.modal-core {
+  background:var(--surface); border-radius:23px; overflow-y:auto;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+  display:flex; flex-direction:column;
+}
+.modal-header {
+  padding:22px 26px 16px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; background:var(--surface); z-index:2;
+}
+.modal-title { font-size:18px; font-weight:800; letter-spacing:-.02em; }
+.modal-close {
+  width:36px; height:36px; border-radius:50%; border:1px solid var(--line);
+  background:var(--surface); cursor:pointer; color:var(--muted);
+  display:flex; align-items:center; justify-content:center;
+  transition:all .4s var(--ease);
+}
+.modal-close:hover { color:var(--ink); border-color:var(--line-strong); transform:rotate(90deg); }
+.modal-body { padding:4px 26px 20px; }
+.modal-footer {
+  padding:16px 26px 22px; display:flex; justify-content:flex-end; gap:10px;
+  border-top:1px solid var(--line); position:sticky; bottom:0; background:var(--surface);
+}
+.btn-ghost {
+  padding:12px 22px; border-radius:999px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink-soft);
+  font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  transition:all .4s var(--ease);
+}
+.btn-ghost:hover { border-color:var(--line-strong); }
+.btn-ghost:active { transform:scale(.97); }
+.btn-cta.lg { padding:9px 9px 9px 24px; font-size:14px; }
+.btn-cta.lg .cta-orb { width:34px; height:34px; }
+
+.form-group { margin-bottom:16px; }
+.form-label { display:block; font-size:12px; font-weight:700; margin-bottom:8px; color:var(--ink-soft); }
+.req { color:var(--red); margin-left:2px; }
+.form-input, .form-textarea, select.form-input {
+  width:100%; padding:13px 16px; border-radius:var(--r-input);
+  border:1px solid transparent; background:var(--bg);
+  font-family:inherit; font-size:14px; font-weight:500; color:var(--ink);
+  transition:all .4s var(--ease);
+}
+.form-input:focus, .form-textarea:focus {
+  outline:none; background:var(--surface); border-color:var(--accent);
+  box-shadow:0 0 0 4px rgba(46,80,232,.1);
+}
+.form-input::placeholder, .form-textarea::placeholder { color:var(--dim); }
+.form-textarea { resize:vertical; min-height:70px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+input[type="date"] { color-scheme:light; }
+
+/* ── TOASTS ── */
+.toast-container {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+  z-index:400; display:flex; flex-direction:column; align-items:center; gap:8px;
+  pointer-events:none;
+}
+.toast {
+  background:var(--ink); color:#fff;
+  padding:13px 22px; border-radius:999px; font-size:13px; font-weight:600;
+  box-shadow:var(--shadow-float);
+  display:flex; align-items:center; gap:10px;
+  animation:toastIn .55s var(--ease);
+  max-width:min(420px, calc(100vw - 40px));
+}
+.toast .ic { color:#7EE2A8; }
+.toast.err .ic { color:#FF9C9C; }
+@keyframes toastIn { from{transform:translateY(24px) scale(.92); opacity:0;} to{transform:translateY(0) scale(1); opacity:1;} }
+
+/* ── MOBILE ── */
+.bottom-nav { display:none; }
+@media (max-width:960px) { .sum-grid { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:640px) {
+  .main { padding:96px 14px 130px; }
+  .nav { top:10px; padding:6px; gap:2px; }
+  .nav-tab { padding:8px 13px; font-size:12.5px; }
+  .nav .btn-cta { display:none; }
+  .page-title { font-size:34px; }
+  .sum-grid { grid-template-columns:1fr; }
+  .calls-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .toolbar { flex-wrap:wrap; }
+  .corpus-bar { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .corpus-tab { flex:0 0 auto; min-width:0; }
+  .cc-footer { flex-direction:column; align-items:stretch; }
+  .cc-actions { width:100%; }
+  .cc-actions .btn-a { flex:1; justify-content:center; padding:10px 8px; }
+
+  .bottom-nav {
+    display:flex; position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+    z-index:150; align-items:center; gap:4px; padding:7px;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid rgba(22,24,29,.07); border-radius:999px;
+    box-shadow:var(--shadow-float);
+  }
+  .bn-btn {
+    padding:10px 18px; border-radius:999px; border:none; background:none;
+    color:var(--muted); font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+    text-decoration:none; display:inline-flex; align-items:center;
+    transition:all .4s var(--ease);
+  }
+  .bn-btn.active { background:var(--ink); color:#fff; }
+  .bn-add {
+    width:44px; height:44px; border-radius:50%; background:var(--ink); border:none;
+    color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:transform .4s var(--ease);
+  }
+  .bn-add:active { transform:scale(.92); }
+}
+
+@media print {
+  body { background:#fff; }
+  .nav, .bottom-nav, .toolbar { display:none !important; }
+  .main { padding-top:20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand" title="Вызовы стройконтроля">
+    <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5F5F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-9l7-5 7 5v9"/><path d="M9.5 20v-5h5v5"/></svg>
+  </div>
+  <a class="nav-tab" href="index.html">Вызовы</a>
+  <a class="nav-tab active" href="checklists.html">Чек-листы</a>
+  <div class="nav-sep"></div>
+  <button class="btn-cta" onclick="openAddModal()">
+    Новый чек-лист
+    <span class="cta-orb">
+      <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </span>
+  </button>
+</nav>
+
+<main class="main">
+
+  <div class="page-head">
+    <div>
+      <div class="page-title">Чек-листы</div>
+      <div class="page-sub">Подписанные чек-листы по корпусам — свой учёт кронштейнов, ваты и остальных позиций для каждого корпуса</div>
+    </div>
+    <div class="sync-chip"><span class="sync-dot"></span><span id="lastUpdated">—</span></div>
+  </div>
+
+  <div class="corpus-tray shell">
+    <div class="shell-inner corpus-bar" id="corpusBar"></div>
+  </div>
+
+  <div class="stats-tray shell">
+    <div class="shell-inner">
+      <div class="sum-grid">
+        <div class="sum-card">
+          <div class="sum-val mono" id="sumCount">0</div>
+          <div class="sum-lbl">Всего чек-листов подписано</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val mono" id="sumSqm">0</div>
+          <div class="sum-lbl">Итого, м²</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val mono" id="sumLm">0</div>
+          <div class="sum-lbl">Итого, м.п.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat-tray shell">
+    <div class="shell-inner cat-inner" id="catRows"></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-title">Список подписанных чек-листов</div>
+    <button class="tool-btn" onclick="exportCSV()" title="Экспорт в CSV" aria-label="Экспорт в CSV">
+      <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+    </button>
+  </div>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <div class="calls-grid" id="listGrid"></div>
+
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-orb">
+      <svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </div>
+    <div class="empty-title">Пока нет чек-листов</div>
+    <div class="empty-sub">Нажмите «Новый чек-лист», чтобы занести первую подписанную позицию</div>
+  </div>
+
+</main>
+
+<nav class="bottom-nav">
+  <a class="bn-btn" href="index.html">Вызовы</a>
+  <button class="bn-add" onclick="openAddModal()" aria-label="Новый чек-лист">
+    <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+  <a class="bn-btn active" href="checklists.html">Чек-листы</a>
+</nav>
+
+<!-- ── МОДАЛКА ДОБАВЛЕНИЯ/РЕДАКТИРОВАНИЯ ── -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal">
+    <div class="modal-core">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Новый чек-лист</div>
+        <button class="modal-close" onclick="closeModal('itemModal')" aria-label="Закрыть">
+          <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Корпус<span class="req">*</span></label>
+          <select class="form-input" id="fBuilding"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Позиция<span class="req">*</span></label>
+          <select class="form-input" id="fWorkType"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Объём<span class="req">*</span> <span class="form-hint mono" id="fUnitHint"></span></label>
+            <input class="form-input mono" id="fVolume" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Дата подписания<span class="req">*</span></label>
+            <input class="form-input" id="fDate" type="date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Примечание</label>
+          <textarea class="form-textarea" id="fNote" placeholder="Необязательно — номер чек-листа, объект, комментарий"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('itemModal')">Отмена</button>
+        <button class="btn-cta lg" onclick="saveItem()">
+          Сохранить
+          <span class="cta-orb">
+            <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ЧЕК-ЛИСТЫ · использует тот же backend (Google Apps Script),
+   что и index.html — через общий localStorage-ключ v2_scriptUrl.
+   Позиции — тот же справочник WORK_TYPES, что в основном трекере.
+══════════════════════════════════════════════════════════════ */
+
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3H_7bxq91HDq8zQE34xhX9ieUixKt8dMsobI0yqcaj4CoDZ3yniz1BSAYVGcs6ZlMYA/exec';
+
+const WORK_TYPES = [
+  {id:'brackets',    label:'Монтаж кронштейнов',        unit:'м²'},
+  {id:'insul1',      label:'Утеплитель 1 слой',         unit:'м²'},
+  {id:'insul2',      label:'Утеплитель 2 слой',         unit:'м²'},
+  {id:'rails',       label:'Монтаж направляющих',       unit:'м²'},
+  {id:'firecut',     label:'Противопожарная отсечка',   unit:'м.п.'},
+  {id:'sfb',         label:'Монтаж СФБ',                unit:'м²'},
+  {id:'akp',         label:'Монтаж АКП',                unit:'м²'},
+  {id:'terracotta',  label:'Терракотовая плитка',       unit:'м²'},
+  {id:'keramogranit',label:'Керамогранит',              unit:'м²'},
+  {id:'reveals',     label:'Откосы',                    unit:'м.п.'},
+  {id:'flashings',   label:'Отливы',                    unit:'м.п.'},
+];
+const WT = Object.fromEntries(WORK_TYPES.map(w=>[w.id,w]));
+
+const BUILDINGS = [
+  {id:'b1', label:'Корпус 1'},
+  {id:'b2', label:'Корпус 2'},
+  {id:'b3', label:'Корпус 3'},
+  {id:'b4', label:'Корпус 4'},
+  {id:'b5', label:'Корпус 5'},
+];
+const BLD = Object.fromEntries(BUILDINGS.map(b=>[b.id,b]));
+
+/* Какие позиции исключены для каждого корпуса (своя номенклатура на корпус) */
+const BUILDING_EXCLUDED = {
+  b1: ['sfb','akp','keramogranit'],
+  b2: ['sfb','akp','keramogranit'],
+  b3: ['terracotta'],
+  b4: ['terracotta'],
+  b5: ['sfb','terracotta'],
+};
+
+function allowedWorkTypes(buildingId){
+  const excluded = BUILDING_EXCLUDED[buildingId] || [];
+  return WORK_TYPES.filter(w=> !excluded.includes(w.id));
+}
+
+let items = [];
+let filter = 'all';
+let selectedBuilding = 'all';
+let editId = null;
+let scriptUrl = localStorage.getItem('v2_scriptUrl') || DEFAULT_SCRIPT_URL;
+const demoMode = () => !scriptUrl;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function icon(name, size=16){
+  const p = {
+    check:'<path d="M20 6L9 17l-5-5"/>',
+    alert:'<path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.89-3.14l-8.18-14a2 2 0 0 0-3.42 0z"/>',
+    calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'
+  }[name] || '';
+  return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+}
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = icon(type==='ok'?'check':'alert', 15) + '<span>'+esc(msg)+'</span>';
+  $('toastContainer').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(()=>el.remove(),400); }, 3200);
+}
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+
+/* ── API (тот же Apps Script, новые action-ы) ── */
+async function apiGetAll() {
+  if (demoMode()) return JSON.parse(localStorage.getItem('v2_checklists_demo')||'[]');
+  const res = await fetch(scriptUrl+'?action=getChecklists&_t='+Date.now(), {cache:'no-store'});
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error||'Ошибка загрузки');
+  return data.checklists;
+}
+async function apiPost(payload) {
+  if (demoMode()) {
+    let arr = JSON.parse(localStorage.getItem('v2_checklists_demo')||'[]');
+    if (payload.action==='addChecklist') {
+      const id = String(Date.now());
+      arr.push({id, buildingId:payload.buildingId, workTypeId:payload.workTypeId, volume:Number(payload.volume), signedAt:payload.signedAt, note:payload.note||'', createdAt:new Date().toISOString()});
+      localStorage.setItem('v2_checklists_demo', JSON.stringify(arr));
+      return {success:true, id};
+    } else if (payload.action==='updateChecklist') {
+      const it = arr.find(x=>x.id===payload.id);
+      if (it) Object.assign(it, {buildingId:payload.buildingId, workTypeId:payload.workTypeId, volume:Number(payload.volume), signedAt:payload.signedAt, note:payload.note});
+    } else if (payload.action==='deleteChecklist') {
+      arr = arr.filter(x=>x.id!==payload.id);
+    }
+    localStorage.setItem('v2_checklists_demo', JSON.stringify(arr));
+    return {success:true};
+  }
+  const res = await fetch(scriptUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error||'Ошибка сохранения');
+  return data;
+}
+
+async function load(){
+  try {
+    items = await apiGetAll();
+    localStorage.setItem('v2_checklists_cache', JSON.stringify(items));
+    $('lastUpdated').textContent = 'Обновлено ' + new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    const c = localStorage.getItem('v2_checklists_cache');
+    if (c) items = JSON.parse(c);
+    $('lastUpdated').textContent = 'Автономно';
+    toast('Не удалось обновить данные: '+e.message, 'err');
+  }
+  renderAll();
+}
+
+function fmtNum(n){ return (Math.round((Number(n)||0)*100)/100).toLocaleString('ru-RU'); }
+function fmtDate(s){
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('ru-RU', {day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function scopedItems(){
+  return selectedBuilding==='all' ? items : items.filter(it=>it.buildingId===selectedBuilding);
+}
+
+function sums(){
+  const map = {};
+  WORK_TYPES.forEach(w=> map[w.id] = 0);
+  scopedItems().forEach(it=>{ map[it.workTypeId] = (map[it.workTypeId]||0) + Number(it.volume||0); });
+  return map;
+}
+
+function renderCorpusBar(){
+  const tabs = [{id:'all', label:'Все корпуса'}].concat(BUILDINGS);
+  $('corpusBar').innerHTML = tabs.map(b=>`
+    <button class="corpus-tab ${selectedBuilding===b.id?'active':''}" onclick="setBuilding('${b.id}')">${esc(b.label)}</button>
+  `).join('');
+}
+
+function setBuilding(id){ selectedBuilding = id; filter = 'all'; renderAll(); }
+
+function renderTotals(){
+  const map = sums();
+  let sqm = 0, lm = 0;
+  WORK_TYPES.forEach(w=>{
+    if (w.unit==='м²') sqm += map[w.id]||0;
+    else if (w.unit==='м.п.') lm += map[w.id]||0;
+  });
+  const scoped = scopedItems();
+  $('sumCount').textContent = scoped.length;
+  $('sumSqm').textContent = fmtNum(sqm);
+  $('sumLm').textContent = fmtNum(lm);
+}
+
+function renderCategories(){
+  const map = sums();
+  const positions = selectedBuilding==='all' ? WORK_TYPES : allowedWorkTypes(selectedBuilding);
+  const max = Math.max(1, ...positions.map(w=>map[w.id]||0));
+  $('catRows').innerHTML = positions.map(w=>{
+    const v = map[w.id]||0;
+    const pct = Math.round((v/max)*100);
+    return `
+    <div class="cat-row" onclick="setFilter('${w.id}')">
+      <div class="cat-top">
+        <div class="cat-name">${esc(w.label)}</div>
+        <div class="cat-val">${fmtNum(v)} <span>${esc(w.unit)}</span></div>
+      </div>
+      <div class="cat-bar-bg"><div class="cat-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderFilters(){
+  const scoped = scopedItems();
+  const positions = selectedBuilding==='all' ? WORK_TYPES : allowedWorkTypes(selectedBuilding);
+  const chips = ['<button class="chip '+(filter==='all'?'active':'')+'" onclick="setFilter(\'all\')">Все <span class="chip-n">'+scoped.length+'</span></button>']
+    .concat(positions.map(w=>{
+      const n = scoped.filter(it=>it.workTypeId===w.id).length;
+      return `<button class="chip ${filter===w.id?'active':''}" onclick="setFilter('${w.id}')">${esc(w.label)} <span class="chip-n">${n}</span></button>`;
+    }));
+  $('filterRow').innerHTML = chips.join('');
+}
+
+function setFilter(id){ filter = id; renderAll(); }
+
+function renderList(){
+  let list = scopedItems().slice().sort((a,b)=> new Date(b.signedAt) - new Date(a.signedAt));
+  if (filter !== 'all') list = list.filter(it=>it.workTypeId===filter);
+  if (!list.length) {
+    $('listGrid').innerHTML = '';
+    $('emptyState').style.display = 'block';
+    return;
+  }
+  $('emptyState').style.display = 'none';
+  $('listGrid').innerHTML = list.map((it,i)=>{
+    const w = WT[it.workTypeId] || {label:it.workTypeId, unit:''};
+    const b = BLD[it.buildingId] || {label:it.buildingId||'—'};
+    return `
+    <div class="call-shell" style="--i:${i}">
+      <div class="call-card">
+        <div class="cc-top">
+          <div>
+            ${selectedBuilding==='all' ? `<div class="cc-corpus">${esc(b.label)}</div>` : ''}
+            <div class="cc-title">${esc(w.label)}</div>
+          </div>
+          <div class="cc-badge" style="--sc:var(--green)">${fmtNum(it.volume)} ${esc(w.unit)}</div>
+        </div>
+        <div class="cc-body">
+          <div class="cc-row">${icon('calendar',14)} Подписан: <b>&nbsp;${fmtDate(it.signedAt)}</b></div>
+          ${it.note ? `<div class="cc-note">${esc(it.note)}</div>` : ''}
+        </div>
+        <div class="cc-footer">
+          <div class="cc-meta mono">#${esc(String(it.id))}</div>
+          <div class="cc-actions">
+            <button class="btn-a btn-det" onclick="openEdit('${esc(String(it.id))}')">Изменить</button>
+            <button class="btn-a btn-rej" onclick="removeItem('${esc(String(it.id))}')">Удалить</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll(){ renderCorpusBar(); renderTotals(); renderCategories(); renderFilters(); renderList(); }
+
+function fillWorkTypeSelect(){
+  $('fBuilding').innerHTML = BUILDINGS.map(b=>`<option value="${b.id}">${esc(b.label)}</option>`).join('');
+  $('fBuilding').onchange = () => { fillWorkTypeOptions($('fBuilding').value); updateUnitHint(); };
+  $('fWorkType').onchange = updateUnitHint;
+  fillWorkTypeOptions(BUILDINGS[0].id);
+}
+function fillWorkTypeOptions(buildingId, keepValue){
+  let positions = allowedWorkTypes(buildingId);
+  const prev = keepValue!==undefined ? keepValue : $('fWorkType').value;
+  // если у существующей записи стоит позиция, исключённая для этого корпуса
+  // (например, внесена до введения ограничений) — не прячем её молча,
+  // а показываем как есть, чтобы редактирование не «съедало» данные
+  if (prev && WT[prev] && !positions.some(w=>w.id===prev)) {
+    positions = positions.concat([WT[prev]]);
+  }
+  $('fWorkType').innerHTML = positions.map(w=>`<option value="${w.id}">${esc(w.label)}</option>`).join('');
+  $('fWorkType').value = positions.some(w=>w.id===prev) ? prev : (positions[0] ? positions[0].id : '');
+}
+function updateUnitHint(){
+  const w = WT[$('fWorkType').value];
+  $('fUnitHint').textContent = w ? '('+w.unit+')' : '';
+}
+
+function openAddModal(){
+  editId = null;
+  $('modalTitle').textContent = 'Новый чек-лист';
+  const b = selectedBuilding!=='all' ? selectedBuilding : BUILDINGS[0].id;
+  $('fBuilding').value = b;
+  fillWorkTypeOptions(b, null);
+  updateUnitHint();
+  $('fVolume').value = '';
+  $('fDate').value = new Date().toISOString().slice(0,10);
+  $('fNote').value = '';
+  openModal('itemModal');
+}
+
+function openEdit(id){
+  const it = items.find(x=>String(x.id)===String(id));
+  if (!it) return;
+  editId = it.id;
+  $('modalTitle').textContent = 'Изменить чек-лист';
+  $('fBuilding').value = it.buildingId;
+  fillWorkTypeOptions(it.buildingId, it.workTypeId);
+  updateUnitHint();
+  $('fVolume').value = it.volume;
+  $('fDate').value = (it.signedAt||'').slice(0,10);
+  $('fNote').value = it.note||'';
+  openModal('itemModal');
+}
+
+async function saveItem(){
+  const buildingId = $('fBuilding').value;
+  const workTypeId = $('fWorkType').value;
+  const volume = parseFloat($('fVolume').value);
+  const signedAt = $('fDate').value;
+  const note = $('fNote').value.trim();
+  if (!buildingId) { toast('Укажите корпус','err'); return; }
+  if (!volume || volume<=0) { toast('Укажите объём больше нуля','err'); return; }
+  if (!signedAt) { toast('Укажите дату подписания','err'); return; }
+
+  closeModal('itemModal');
+
+  if (editId) {
+    const it = items.find(x=>x.id===editId);
+    const backup = it ? Object.assign({}, it) : null;
+    if (it) Object.assign(it, {buildingId, workTypeId, volume, signedAt, note});
+    renderAll();
+    try {
+      await apiPost({action:'updateChecklist', id:editId, buildingId, workTypeId, volume, signedAt, note});
+      toast('Чек-лист обновлён');
+    } catch(e) {
+      if (it && backup) Object.assign(it, backup);
+      renderAll();
+      toast('Ошибка сохранения: '+e.message,'err');
+    }
+  } else {
+    const tempId = 'tmp_'+Date.now();
+    items.push({id:tempId, buildingId, workTypeId, volume, signedAt, note, createdAt:new Date().toISOString()});
+    renderAll();
+    try {
+      const res = await apiPost({action:'addChecklist', buildingId, workTypeId, volume, signedAt, note});
+      const it = items.find(x=>x.id===tempId);
+      if (it && res.id) it.id = res.id;
+      renderAll();
+      toast('Чек-лист добавлен');
+    } catch(e) {
+      items = items.filter(x=>x.id!==tempId);
+      renderAll();
+      toast('Ошибка сохранения: '+e.message,'err');
+    }
+  }
+}
+
+async function removeItem(id){
+  if (!confirm('Удалить этот чек-лист? Действие нельзя отменить.')) return;
+  const backup = items.slice();
+  items = items.filter(x=>String(x.id)!==String(id));
+  renderAll();
+  try {
+    await apiPost({action:'deleteChecklist', id});
+    toast('Чек-лист удалён');
+  } catch(e) {
+    items = backup;
+    renderAll();
+    toast('Ошибка удаления: '+e.message,'err');
+  }
+}
+
+function exportCSV(){
+  const rows = [['Корпус','Позиция','Объём','Единица','Дата подписания','Примечание']];
+  scopedItems().slice().sort((a,b)=> new Date(a.signedAt) - new Date(b.signedAt)).forEach(it=>{
+    const w = WT[it.workTypeId]||{label:it.workTypeId,unit:''};
+    const b = BLD[it.buildingId]||{label:it.buildingId||''};
+    rows.push([b.label, w.label, it.volume, w.unit, fmtDate(it.signedAt), it.note||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'checklists.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+fillWorkTypeSelect();
+load();
+</script>
+</body>
+</html>
